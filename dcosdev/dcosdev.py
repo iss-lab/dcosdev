@@ -33,8 +33,8 @@ from minio.error import ResponseError
 import docker, requests
 import boto3
 
-import oper
-import basic
+from . import oper
+from . import basic
 
 
 sdk_versions = ['0.42.1', '0.53.0', '0.55.2']
@@ -89,7 +89,9 @@ def collect_artifacts():
 
 def upload_minio(artifacts):
     minio_host = os.environ['MINIO_HOST']
-    minioClient = Minio(minio_host+':9000', access_key='minio', secret_key='minio123', secure=False)
+    access_key = os.environ.get("MINIO_ACCESS_KEY", "minio")
+    secret_key = os.environ.get("MINIO_SECRET_KEY", "minio123")
+    minioClient = Minio(minio_host, access_key=access_key, secret_key=secret_key, secure=False)
 
     for a in artifacts:
         try:
@@ -199,7 +201,7 @@ def main():
         upload_aws(artifacts, args['<s3-bucket>'], args['<package-version>'])
 
         if args['--universe']:
-           path = args['--universe']+'/repo/packages/'+package_name()[0].upper()+'/'+package_name()
+           path = args['--universe']+'/packages/'+package_name()[0].upper()+'/'+package_name()
            if os.path.exists(path) and not os.path.exists(path+'/'+args['<release-version>']):
               path = path+'/'+str(args['<release-version>'])
               os .makedirs(path)
