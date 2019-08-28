@@ -4,8 +4,8 @@
 import re
 import sys
 
-from dcosdev.dcosdev import main
+from dcosdev.commands import maingroup
+
 
 if __name__ == '__main__':
-    sys.exit(main())
-
+    sys.exit(maingroup())

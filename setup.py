@@ -24,7 +24,7 @@ setup(name='dcosdev',
       packages=find_packages(),
       entry_points={
         'console_scripts': [
-            'dcosdev=dcosdev.dcosdev:main',
+            'dcosdev=dcosdev.commands:maingroup',
         ],
       },
       install_requires=REQUIRES,

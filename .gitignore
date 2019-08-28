@@ -1,6 +1,5 @@
 *.pyc
-
+.vscode
 dcosdev.egg-info
 build
 dist
-
