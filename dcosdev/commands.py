@@ -193,7 +193,8 @@ def test(dcos_url, strict, dcos_username, dcos_password):
 @click.argument("s3-bucket")
 @click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
 @click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
-def release(release_version, s3_bucket, universe, force):
+@click.option("--keep", is_flag=True, help="Keep repo file")
+def release(release_version, s3_bucket, universe, force, keep):
     package_name = helper.package_name()
     package_version = helper.package_version()
     artifacts_url = 'https://'+s3_bucket+'.s3.amazonaws.com/packages/'+package_name+'/'+package_version
@@ -201,7 +202,22 @@ def release(release_version, s3_bucket, universe, force):
     artifacts = helper.collect_artifacts()
     print(">>> INFO: releasing "+str(artifacts))
     helper.upload_aws(artifacts, s3_bucket, package_version)
-
     if universe:
         helper.write_universe_files(release_version, artifacts_url, universe, force)
+    if not keep:
+        os.remove('dist/'+package_name+'-repo.json')
+
+
+
+@build.command("dcos")
+@click.argument("target-dir")
+def build_dcos(target_dir):
+    artifacts_url = target_dir
+    package_name = helper.package_name()
+    package_version = helper.package_version()
+    helper.build_repo(package_version, int(0), artifacts_url)
+    artifacts = helper.collect_artifacts()
+    print(">>> INFO: releasing "+str(artifacts))
+    helper.copy_artifacts(artifacts, target_dir)
+    helper.write_universe_files("", artifacts_url, target_dir, force=False, is_complete_path=True)
     os.remove('dist/'+package_name+'-repo.json')
