@@ -42,8 +42,13 @@ def _read_config_values(artifacts_url):
     if os.path.exists("config.yml"):
         with open("config.yml") as f:
             config_values = yaml.safe_load(f.read()).get("values", dict())
-    return {**config_values, **global_values}
+    
+    # Only works with Python 3.*
+    # return {**config_values, **global_values}
 
+    # For Python 2.*
+    config_values.update(global_values)
+    return config_values
 
 def _prerender_file(config_values, filename):
     with open(filename) as f:
