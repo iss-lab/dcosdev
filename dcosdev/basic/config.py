@@ -9,7 +9,7 @@ template = """
         "name": {
           "description": "The name of the service instance",
           "type": "string",
-          "default": "%(template)s",
+          "default": "%(package-name)s",
           "title": "Service name"
         },
         "user": {
@@ -57,12 +57,12 @@ template = """
       ]
     },
     "node": {
-      "description": "%(template)s pod configuration properties",
+      "description": "%(package-name)s pod configuration properties",
       "type": "object",
       "properties": {
         "count": {
           "title": "Node count",
-          "description": "Number of %(template)s pods to run",
+          "description": "Number of %(package-name)s pods to run",
           "type": "integer",
           "default": 1
         },
@@ -77,19 +77,19 @@ template = """
         },
         "cpus": {
           "title": "CPU count",
-          "description": "%(template)s pod CPU requirements",
+          "description": "%(package-name)s pod CPU requirements",
           "type": "number",
           "default": 0.1
         },
         "mem": {
           "title": "Memory size (MB)",
-          "description": "%(template)s pod mem requirements (in MB)",
+          "description": "%(package-name)s pod mem requirements (in MB)",
           "type": "integer",
           "default": 252
         },
         "disk": {
           "title": "Disk size (MB)",
-          "description": "%(template)s pod persistent disk requirements (in MB)",
+          "description": "%(package-name)s pod persistent disk requirements (in MB)",
           "type": "integer",
           "default": 25
         },

@@ -4,7 +4,7 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
-  %(template)s:
+  %(package-name)s:
     count: {{NODE_COUNT}}
     placement: '{{{NODE_PLACEMENT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -15,11 +15,11 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: "echo %(template)s >> %(template)s-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo %(package-name)s >> %(package-name)s-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         volume:
-          path: "%(template)s-container-path"
+          path: "%(package-name)s-container-path"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
         env:

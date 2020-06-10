@@ -31,18 +31,23 @@ def operator_new(name, sdk_version):
         return
 
     with open('svc.yml', 'w') as file:
-            file.write(oper.svc.template%{'template': name})
+            file.write(oper.svc.template%{'package-name': name})
+
+    minio_host = os.environ.get("MINIO_HOST", "minio.marathon.l4lb.thisdcos.directory:9000")
+
+    with open('config.yml', 'w') as file:
+            file.write(oper.local_config.template%{'package-name': name,'version': sdk_version, 'minio-host': minio_host})
 
     os.makedirs('universe')
     with open('universe/package.json', 'w') as file:
-            file.write(oper.package.template%{'template': name,'version': sdk_version})
+            file.write(oper.package.template%{'package-name': name,'version': sdk_version})
     with open('universe/marathon.json.mustache', 'w') as file:
             file.write(oper.mjm.template)
     with open('universe/config.json', 'w') as file:
-            file.write(oper.config.template%{'template': name})
+            file.write(oper.config.template%{'package-name': name})
     with open('universe/resource.json', 'w') as file:
             d = helper.sha_values()
-            file.write(oper.resource.template%{'template': name, 'version': sdk_version, 'cli-darwin': d['dcos-service-cli-darwin'], 'cli-linux': d['dcos-service-cli-linux'], 'cli-win': d['dcos-service-cli.exe']})
+            file.write(oper.resource.template%{'package-name': name, 'version': sdk_version, 'cli-darwin': d['dcos-service-cli-darwin'], 'cli-linux': d['dcos-service-cli-linux'], 'cli-win': d['dcos-service-cli.exe']})
 
 
 @operator.group("add")
@@ -54,7 +59,7 @@ def operator_add():
 def operator_add_java_scheduler():
     os.makedirs('java/scheduler/src/main/java/com/mesosphere/sdk/operator/scheduler')
     with open('java/scheduler/build.gradle', 'w') as file:
-            file.write(oper.build_gradle.template % {'version': helper.sdk_version()})
+            file.write(oper.build_gradle.template % {'version': helper.cfg_get('sdk-version')})
     with open('java/scheduler/settings.gradle', 'w') as file:
             file.write(oper.settings_gradle.template)
     with open('java/scheduler/src/main/java/com/mesosphere/sdk/operator/scheduler/Main.java', 'w') as file:
@@ -64,14 +69,15 @@ def operator_add_java_scheduler():
 @operator_add.command("tests")
 def operator_add_tests():
     os.makedirs('tests')
+    package_name = helper.cfg_get('package-name')
     with open('tests/__init__.py', 'w') as file:
             file.write(oper.tests.init_py.template)
     with open('tests/config.py', 'w') as file:
-            file.write(oper.tests.config.template%{'template': helper.package_name()})
+            file.write(oper.tests.config.template%{'package-name': package_name})
     with open('tests/conftest.py', 'w') as file:
             file.write(oper.tests.conftest.template)
     with open('tests/test_overlay.py', 'w') as file:
-            file.write(oper.tests.test_overlay.template%{'template': helper.package_name()})
+            file.write(oper.tests.test_overlay.template%{'package-name': package_name})
     with open('tests/test_sanity.py', 'w') as file:
             file.write(oper.tests.test_sanity.template)
 
@@ -83,7 +89,7 @@ def operator_upgrade(new_sdk_version):
         print('>>> Error: unsupported sdk version! Supported sdk versions are '+str(sdk_versions)+' .')
         return
 
-    old_sdk_version = helper.sdk_version()
+    old_sdk_version = helper.cfg_get('sdk-version')
     print('>>> INFO: upgrade from '+old_sdk_version+' to '+new_sdk_version)
 
     with open('universe/package.json', 'r') as f:
@@ -112,28 +118,34 @@ def basic_group():
 @click.argument("name")
 def basic_new(name):
     with open('cmd.sh', 'w') as file:
-        file.write(basic.cmd.template%{'template': name})
+        file.write(basic.cmd.template%{'package-name': name})
+
+    minio_host = os.environ.get("MINIO_HOST", "minio.marathon.l4lb.thisdcos.directory:9000")
+
+    with open('config.yml', 'w') as file:
+            file.write(basic.local_config.template%{'package-name': name, 'minio-host': minio_host})
 
     os.makedirs('universe')
     with open('universe/package.json', 'w') as file:
-        file.write(basic.package.template%{'template': name})
+        file.write(basic.package.template%{'package-name': name})
     with open('universe/marathon.json.mustache', 'w') as file:
         file.write(basic.mjm.template)
     with open('universe/config.json', 'w') as file:
-        file.write(basic.config.template%{'template': name})
+        file.write(basic.config.template%{'package-name': name})
     with open('universe/resource.json', 'w') as file:
-        file.write(basic.resource.template%{'template': name})
+        file.write(basic.resource.template%{'package-name': name})
 
 
 @maingroup.command()
 def up():
-    package_name = helper.package_name()
+    package_name = helper.cfg_get('package-name')
+    artifacts_url = helper.cfg_get('artifacts-url')
     helper.build_repo()
     artifacts = helper.collect_artifacts()
     print(">>> INFO: uploading "+str(artifacts))
     helper.upload_minio(artifacts)
     os.remove('dist/'+package_name+'-repo.json')
-    print('\nafter 1st up: dcos package repo add '+package_name+'-repo --index=0 http://minio.marathon.l4lb.thisdcos.directory:9000/artifacts/'+package_name+'/'+package_name+'-repo.json')
+    print('\nafter 1st up: dcos package repo add '+package_name+'-repo --index=0 '+artifacts_url+'/'+package_name+'-repo.json')
     print('\ndcos package install '+package_name+' --yes')
     print('\ndcos package uninstall '+package_name)
     print('\ndcos package repo remove '+package_name+'-repo'+'\n')
@@ -164,11 +176,11 @@ def build_java():
 @click.option("--dcos-username", help="dc/os username", default="bootstrapuser")
 @click.option("--dcos-password", help="dc/os password", default="deleteme")
 def test(dcos_url, strict, dcos_username, dcos_password):
-    package_name = helper.package_name()
+    package_name = helper.cfg_get('package-name')
     print(">>> tests starting ...")
     project_path =  os.environ['PROJECT_PATH'] if 'PROJECT_PATH' in os.environ else os.getcwd()
     dockerClient = docker.from_env()
-    c = dockerClient.containers.run('realmbgl/dcos-commons:'+helper.sdk_version(), 'bash /build-tools/test_runner.sh /dcos-commons-dist', detach=True, auto_remove=True, working_dir='/build',
+    c = dockerClient.containers.run('realmbgl/dcos-commons:'+helper.cfg_get('sdk-version'), 'bash /build-tools/test_runner.sh /dcos-commons-dist', detach=True, auto_remove=True, working_dir='/build',
                                 volumes={project_path : {'bind': '/build'},
                                             project_path+'/tests' : {'bind': '/dcos-commons-dist/tests'},
                                             project_path+'.gradle_cache' : {'bind': '/root/.gradle'}
@@ -187,37 +199,49 @@ def test(dcos_url, strict, dcos_username, dcos_password):
         print(l[:-1])
 
 
+@maingroup.group()
+def release():
+    pass
 
-@maingroup.command()
-@click.argument("release-version")
+
+@release.command("aws")
 @click.argument("s3-bucket")
 @click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
 @click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
 @click.option("--keep", is_flag=True, help="Keep repo file")
-def release(release_version, s3_bucket, universe, force, keep):
-    package_name = helper.package_name()
-    package_version = helper.package_version()
-    artifacts_url = 'https://'+s3_bucket+'.s3.amazonaws.com/packages/'+package_name+'/'+package_version
-    helper.build_repo(package_version, int(release_version), artifacts_url)
-    artifacts = helper.collect_artifacts()
-    print(">>> INFO: releasing "+str(artifacts))
-    helper.upload_aws(artifacts, s3_bucket, package_version)
+def release_aws(s3_bucket, universe, force, keep):
+    cfg = helper.cfg_get_all()
     if universe:
-        helper.write_universe_files(release_version, artifacts_url, universe, force)
+        cfg['universe-path'] = universe
+    package_name = cfg['package-name']
+    package_version = cfg['package-version']
+    cfg['artifacts-url'] = 'https://'+s3_bucket+'.s3.amazonaws.com/packages/'+package_name+'/'+package_version
+    helper.build_repo(cfg)
+    artifacts = helper.collect_artifacts(cfg)
+    print(">>> INFO: releasing "+str(artifacts))
+    helper.upload_aws(artifacts, s3_bucket, cfg)
+    if 'universe-path' in cfg:
+        os.makedirs(cfg['universe-path'])
+        helper.write_universe_files(force, cfg)
     if not keep:
         os.remove('dist/'+package_name+'-repo.json')
 
-
-
-@build.command("dcos")
-@click.argument("target-dir")
-def build_dcos(target_dir):
-    artifacts_url = target_dir
-    package_name = helper.package_name()
-    package_version = helper.package_version()
-    helper.build_repo(package_version, int(0), artifacts_url)
-    artifacts = helper.collect_artifacts()
+@release.command("file")
+@click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
+@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc")
+@click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
+@click.option("--keep", is_flag=True, help="Keep repo file")
+def release_aws(universe, is_complete_path, force, keep):
+    cfg = helper.cfg_get_all()
+    if universe:
+        cfg['universe-path'] = universe
+    cfg['is-complete-path'] = is_complete_path
+    package_name = cfg['package-name']
+    helper.build_repo(cfg)
+    artifacts = helper.collect_artifacts(cfg)
     print(">>> INFO: releasing "+str(artifacts))
-    helper.copy_artifacts(artifacts, target_dir)
-    helper.write_universe_files("", artifacts_url, target_dir, force=False, is_complete_path=True)
-    os.remove('dist/'+package_name+'-repo.json')
+    if 'universe-path' in cfg:
+        os.makedirs(cfg['universe-path'])
+        helper.write_universe_files(force, cfg)
+    if not keep:
+        os.remove('dist/'+package_name+'-repo.json')

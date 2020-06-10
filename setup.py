@@ -4,6 +4,8 @@
 from setuptools import find_packages, setup
 
 REQUIRES = [
+    'click',
+    'pyyaml',
     'yml',
     'docopt==0.6.2',
     'docker',

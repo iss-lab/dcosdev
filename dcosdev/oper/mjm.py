@@ -25,7 +25,7 @@ template = """
   "env": {
     "PACKAGE_NAME": "{{package-name}}",
     "PACKAGE_VERSION": "{{package-version}}",
-    "PACKAGE_BUILD_TIME_EPOCH_MS": "%(time_epoche_ms)s",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "%(time_epoch_ms)s",
     "PACKAGE_BUILD_TIME_STR": "%(time_str)s",
     "FRAMEWORK_NAME": "{{service.name}}",
     "SLEEP_DURATION": "{{service.sleep}}",
@@ -45,6 +45,8 @@ template = """
     "NODE_MEM": "{{node.mem}}",
     "NODE_DISK": "{{node.disk}}",
     "NODE_DISK_TYPE": "{{node.disk_type}}",
+
+    "PAUSE_OVERRIDE_CMD": "echo This task is PAUSED, sleeping ... && /mnt/mesos/sandbox/bootstrap --resolve=false && while true; do sleep 3600; done",
 
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
