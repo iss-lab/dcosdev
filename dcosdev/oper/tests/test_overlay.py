@@ -31,5 +31,5 @@ def configure_package(configure_security):
 @overlay_nostrict
 @pytest.mark.dcos_min_version('1.9')
 def test_install():
-    sdk_networks.check_task_network("%(template)s-0-node")
+    sdk_networks.check_task_network("%(package-name)s-0-node")
 """

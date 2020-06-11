@@ -2,7 +2,7 @@ template = """
 {
   "assets": {
     "uris": {
-      "cmd": "http://minio.marathon.l4lb.thisdcos.directory:9000/artifacts/%(template)s/cmd.sh"
+      "cmd": "http://minio.marathon.l4lb.thisdcos.directory:9000/artifacts/%(package-name)s/cmd.sh"
     }
   },
   "images": {

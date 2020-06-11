@@ -1,6 +1,6 @@
 import sys
 sys.dont_write_bytecode=True
 
-import cmd, package, mjm, config, resource
+from . import cmd, local_config, package, mjm, config, resource
 
-__all__ = ['cmd', 'package', 'mjm', 'config', 'resource']
+__all__ = ['cmd', 'local_config', 'package', 'mjm', 'config', 'resource']
