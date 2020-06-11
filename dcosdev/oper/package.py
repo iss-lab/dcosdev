@@ -11,7 +11,7 @@ template = """
   "selected": false,
   "framework": true,
   "tags": ["%(version)s", "%(package-name)s"],
-  "postInstallNotes": "DC/OS %(package-name)s is being installed!\\n\\n\\tDocumentation: %%(documentation-path)\\n\\tIssues: %%(issues-path)",
+  "postInstallNotes": "DC/OS %(package-name)s is being installed!\\n\\n\\tDocumentation: %%(documentation-path)s\\n\\tIssues: %%(issues-path)s",
   "postUninstallNotes": "DC/OS %(package-name)s is being uninstalled."
 }
 """
