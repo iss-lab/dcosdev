@@ -137,18 +137,13 @@ def basic_new(name):
 
 
 @maingroup.command()
-def up():
-    package_name = helper.cfg_get('package-name')
-    artifacts_url = helper.cfg_get('artifacts-url')
-    helper.build_repo()
-    artifacts = helper.collect_artifacts()
-    print(">>> INFO: uploading "+str(artifacts))
-    helper.upload_minio(artifacts)
-    os.remove('dist/'+package_name+'-repo.json')
-    print('\nafter 1st up: dcos package repo add '+package_name+'-repo --index=0 '+artifacts_url+'/'+package_name+'-repo.json')
-    print('\ndcos package install '+package_name+' --yes')
-    print('\ndcos package uninstall '+package_name)
-    print('\ndcos package repo remove '+package_name+'-repo'+'\n')
+@click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
+@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc when supplied")
+@click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
+@click.option("--keep", is_flag=True, help="Keep repo file")
+@click.pass_context
+def up(ctx, universe, is_complete_path, force, keep):
+    return ctx.invoke(release_minio)
 
 
 @maingroup.group()
@@ -203,16 +198,45 @@ def test(dcos_url, strict, dcos_username, dcos_password):
 def release():
     pass
 
+@release.command("minio")
+@click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
+@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc when supplied")
+@click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
+@click.option("--cleanup", is_flag=True, help="Remove repo file")
+def release_minio(universe, is_complete_path, force, cleanup):
+    cfg = helper.cfg_get_all()
+    if universe:
+        cfg['universe-path'] = universe
+    if not 'is-complete-path' in cfg:
+        cfg['is-complete-path'] = is_complete_path
+    package_name = cfg['package-name']
+    artifacts_url = cfg['artifacts-url']
+    helper.build_repo(cfg)
+    artifacts = helper.collect_artifacts(cfg)
+    print(">>> INFO: releasing "+str(artifacts))
+    helper.upload_minio(artifacts, cfg)
+    if 'universe-path' in cfg:
+        helper.write_universe_files(force, cfg)
+    if cleanup:
+        os.remove('dist/'+ helper.cfg_get('package_name')+'-repo.json')
+    print('\nafter 1st up: dcos package repo add '+package_name+'-repo --index=0 '+artifacts_url+'/'+package_name+'-repo.json')
+    print('\ndcos package install '+package_name+' --yes')
+    print('\ndcos package uninstall '+package_name)
+    print('\ndcos package repo remove '+package_name+'-repo'+'\n')
+
 
 @release.command("aws")
 @click.argument("s3-bucket")
 @click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
+@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc when supplied")
 @click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
-@click.option("--keep", is_flag=True, help="Keep repo file")
-def release_aws(s3_bucket, universe, force, keep):
+@click.option("--cleanup", is_flag=True, help="Remove repo file")
+def release_aws(s3_bucket, universe, is_complete_path, force, cleanup):
     cfg = helper.cfg_get_all()
     if universe:
         cfg['universe-path'] = universe
+    if not 'is-complete-path' in cfg:
+        cfg['is-complete-path'] = is_complete_path
     package_name = cfg['package-name']
     package_version = cfg['package-version']
     cfg['artifacts-url'] = 'https://'+s3_bucket+'.s3.amazonaws.com/packages/'+package_name+'/'+package_version
@@ -221,27 +245,26 @@ def release_aws(s3_bucket, universe, force, keep):
     print(">>> INFO: releasing "+str(artifacts))
     helper.upload_aws(artifacts, s3_bucket, cfg)
     if 'universe-path' in cfg:
-        os.makedirs(cfg['universe-path'])
         helper.write_universe_files(force, cfg)
-    if not keep:
-        os.remove('dist/'+package_name+'-repo.json')
+    if cleanup:
+        os.remove('dist/'+ helper.cfg_get('package_name')+'-repo.json')
 
 @release.command("file")
 @click.option("--universe", help="Path to a clone of https://github.com/mesosphere/universe (or universe fork)")
-@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc")
+@click.option("--is-complete-path", is_flag=True, help="Do not generate universe path releaseVersion integer, etc when supplied")
 @click.option("--force", is_flag=True, help="Overwrite artifacts and universe files if already exist")
-@click.option("--keep", is_flag=True, help="Keep repo file")
-def release_aws(universe, is_complete_path, force, keep):
+@click.option("--cleanup", is_flag=True, help="Remove repo file")
+def release_file(universe, is_complete_path, force, cleanup):
     cfg = helper.cfg_get_all()
     if universe:
         cfg['universe-path'] = universe
-    cfg['is-complete-path'] = is_complete_path
+    if not 'is-complete-path' in cfg:
+        cfg['is-complete-path'] = is_complete_path
     package_name = cfg['package-name']
     helper.build_repo(cfg)
     artifacts = helper.collect_artifacts(cfg)
     print(">>> INFO: releasing "+str(artifacts))
     if 'universe-path' in cfg:
-        os.makedirs(cfg['universe-path'])
         helper.write_universe_files(force, cfg)
-    if not keep:
-        os.remove('dist/'+package_name+'-repo.json')
+    if cleanup:
+        os.remove('dist/'+ helper.cfg_get('package_name')+'-repo.json')

@@ -7,7 +7,7 @@ template = """
       "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/%(version)s/bootstrap.zip",
       "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/%(version)s/executor.zip",
       "scheduler-zip": "https://ecosystem-repo.s3.amazonaws.com/sdk/artifacts/%(version)s/operator-scheduler.zip",
-      "svc": "{{artifacts-url}}/svc.yml"
+      "svc": "%%(artifacts-url)s/svc.yml"
     }
   },
   "images": {

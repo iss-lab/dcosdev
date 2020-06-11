@@ -119,9 +119,6 @@ def write_universe_files(force, cfg={}):
         path = cfg['universe-path']
     else:
         path = cfg['universe-path']+'/packages/'+cfg['package-name'][0].upper()+'/'+cfg['package-name']
-        if not os.path.exists(path):
-            print('>>> ERROR: package folder %s does not exist' % path)
-            return
         path = path+'/'+str(cfg['release-version'])
     if not force and not is_complete_path and os.path.exists(path):
         print('>>> ERROR: release version folder \''+cfg['release-version']+'\' exists already !')
@@ -141,7 +138,7 @@ def write_universe_files(force, cfg={}):
         f.write(marathon)
     with open(path+'/package.json', 'w') as f:
         f.write(package)
-        
+
 def _prerender_file(cfg, filename):
     data = _read_file(filename)
     return data % cfg

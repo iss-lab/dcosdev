@@ -11,5 +11,5 @@ values:
   maintainer: https://github.com/YOURNAMEHERE/dcos-%(package-name)s
   release-version: 0
   universe-path: "dist/universe"
-  is-complete-path: false
+  is-complete-path: true
 """
