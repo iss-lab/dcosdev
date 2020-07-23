@@ -9,7 +9,7 @@ from . import oper
 from . import basic
 from . import helper
 
-sdk_versions = ['0.42.1', '0.53.0', '0.55.2', '0.57.3']
+sdk_versions = ['0.42.1', '0.53.0', '0.55.2']
 
 
 @click.group()
