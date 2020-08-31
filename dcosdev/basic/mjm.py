@@ -21,7 +21,7 @@ template = """
   "env": {
     "PACKAGE_NAME": "{{package-name}}",
     "PACKAGE_VERSION": "{{package-version}}",
-    "PACKAGE_BUILD_TIME_EPOCH_MS": "%(time_epoche_ms)s",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "%(time_epoch_ms)s",
     "PACKAGE_BUILD_TIME_STR": "%(time_str)s",
     "SLEEP_DURATION": "{{service.sleep}}"
   },
