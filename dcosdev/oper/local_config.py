@@ -3,6 +3,9 @@ values:
   package-name: %(package-name)s
   package-version: snapshot
   artifacts-url: http://%(minio-host)s/artifacts/%(package-name)s
+  minio-host: %(minio-host)s
+  minio-access-key: %(minio-access-key)s
+  minio-secret-key: %(minio-secret-key)s
   sdk-version: %(version)s
   upgrades-from: ""
   downgrades-to: ""
