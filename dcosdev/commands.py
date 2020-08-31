@@ -34,9 +34,17 @@ def operator_new(name, sdk_version):
             file.write(oper.svc.template%{'package-name': name})
 
     minio_host = os.environ.get("MINIO_HOST", "minio.marathon.l4lb.thisdcos.directory:9000")
+    access_key = os.environ.get("MINIO_ACCESS_KEY", "minio")
+    secret_key = os.environ.get("MINIO_SECRET_KEY", "minio123")
 
     with open('config.yml', 'w') as file:
-            file.write(oper.local_config.template%{'package-name': name,'version': sdk_version, 'minio-host': minio_host})
+            file.write(oper.local_config.template%{
+                'package-name': name,
+                'version': sdk_version, 
+                'minio-host': minio_host, 
+                'minio-access-key': access_key, 
+                'minio-secret-key': secret_key
+            })
 
     os.makedirs('universe')
     with open('universe/package.json', 'w') as file:
@@ -121,9 +129,16 @@ def basic_new(name):
         file.write(basic.cmd.template%{'package-name': name})
 
     minio_host = os.environ.get("MINIO_HOST", "minio.marathon.l4lb.thisdcos.directory:9000")
+    access_key = os.environ.get("MINIO_ACCESS_KEY", "minio")
+    secret_key = os.environ.get("MINIO_SECRET_KEY", "minio123")
 
     with open('config.yml', 'w') as file:
-            file.write(basic.local_config.template%{'package-name': name, 'minio-host': minio_host})
+            file.write(oper.local_config.template%{
+                'package-name': name,
+                'minio-host': minio_host, 
+                'minio-access-key': access_key, 
+                'minio-secret-key': secret_key
+            })
 
     os.makedirs('universe')
     with open('universe/package.json', 'w') as file:

@@ -86,9 +86,9 @@ def collect_artifacts(cfg={}):
 
 
 def upload_minio(artifacts, cfg={}):
-    minio_host = os.environ.get("MINIO_HOST", "minio.marathon.l4lb.thisdcos.directory:9000")
-    access_key = os.environ.get("MINIO_ACCESS_KEY", "minio")
-    secret_key = os.environ.get("MINIO_SECRET_KEY", "minio123")
+    minio_host = os.environ.get("MINIO_HOST", cfg_get('minio-host', "minio.marathon.l4lb.thisdcos.directory:9000", cfg))
+    access_key = os.environ.get("MINIO_ACCESS_KEY", cfg_get('minio-access-key', "minio", cfg))
+    secret_key = os.environ.get("MINIO_SECRET_KEY", cfg_get('minio-secret-key', "minio123", cfg))
     minioClient = Minio(minio_host, access_key=access_key, secret_key=secret_key, secure=False)
 
     for a in artifacts:

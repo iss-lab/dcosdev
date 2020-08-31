@@ -43,7 +43,12 @@ pip install .
 
 The following command builds a docker image that includes `dcosdev` and the `dcoscli`.
 ```
-docker build --no-cache -f misc/Dockerfile -t mydcosdev .
+docker build --no-cache -t mydcosdev .
+```
+
+Optionally run commands using docker.
+```
+docker run -v $(pwd):/workdir mydcosdev /usr/local/bin/dcosdev up
 ```
 
 ## developer guide
@@ -56,8 +61,7 @@ cd myservice
 
 If you chosen to build the docker image in the previous step then you use the following commands before using `dcosdev`.
 ```
-docker run -ti --rm -e PROJECT_PATH=$(pwd) -v $(pwd):/myservice -v /var/run/docker.sock:/var/run/docker.sock mydcosdev bash
-cd /myservice
+docker run -ti --rm -e PROJECT_PATH=$(pwd) -v $(pwd):/workdir -v /var/run/docker.sock:/var/run/docker.sock mydcosdev bash
 ```
 
 **Note:** All `dcosdev` cli commands have to run from the root of your project folder.
